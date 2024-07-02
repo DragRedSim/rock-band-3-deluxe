@@ -1,2 +1,8 @@
 ;put your own custom sources here
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(dlc_hasrb3 "RB DLC w/ RB3 versions")
+(ugc1_hasugc2 "RBN 1.0 w/ RBN2 versions")
+(ugc1_2x "RBN 1.0 - 2x Bass Pedal")
+(ugc2_2x "RBN 2.0 - 2x Bass Pedal")
+(ugc_pulled "RBN Pulled Songs")
+(beatles_dlc "The Beatles: Rock Band DLC")
