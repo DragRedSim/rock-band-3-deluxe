@@ -2086,6 +2086,7 @@
 (reboot_warning "Are you sure you want to reboot the game?")
 (save_warning "Would you like to save these settings for future sessions?")
 (settings_error "ERROR: Failed to save Deluxe Settings!\nJoin the MiloHax Discord server for assistance.\n\ndiscord.gg/milohax")
+(settings_error_xenia "ERROR: Failed to save Deluxe Settings!\nMake sure your Xenia config has the value allow_game_relative_writes set to true.\n\nIf you've set this and still see this error, join the MiloHax Discord server for assistance.\n\ndiscord.gg/milohax")
 (settings_error_short "ERROR: Failed to save Deluxe Settings!")
 (settings_warning "A dx.dta file already exists. You must delete this first before saving new settings.")
 (theme_save_warning "Would you like to save this track theme for future sessions?")

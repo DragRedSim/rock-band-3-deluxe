@@ -330,6 +330,7 @@
          (primary_profile_changed_msg)}
       {customize.btn set text_token dx_iunderstand}
       {$this disable continue.btn}
+      {description.lbl set text_token settings_error}
       {switch $dx_detected_platform
          (platform_rpcs3
             {continue.btn set text_token platform_rpcs3})
@@ -340,6 +341,7 @@
          (platform_xbox_rb3e
             {continue.btn set text_token platform_xbox_rb3e})
          (platform_xenia_rb3e
+            {description.lbl set text_token settings_error_xenia}
             {continue.btn set text_token platform_xenia_rb3e})
          (platform_wii
             {continue.btn set text_token platform_wii})
@@ -349,8 +351,7 @@
             {continue.btn set text_token platform_dolphin_rb3e})
          (platform_unknown
             {continue.btn set text_token platform_unknown})
-      }
-      {description.lbl set text_token settings_error})
+      })
    (exit
       {profile_mgr remove_sink $this primary_profile_changed_msg})
    (primary_profile_changed_msg
