@@ -112,7 +112,9 @@
             ($node {music_library get_highlighted_node})
             ($shortname "blank")
             ($shortname_str "blank")
-            {if {== {$node get_node_type} kNodeSong}
+            ;{if {== {$node get_node_type} kNodeSong}
+            {if_else {== {$node get_node_type} kNodeSong}
+                {do
                 ;{song_select_panel dx_authorpoll {$node get_token}}
                 ; Author finder is too slow
                 {set $shortname {$node get_token}}
@@ -125,6 +127,8 @@
                 {if {>= {size $searchcache_buf} SONGS_PER_CACHE_PAGE}
                     {dx_generate_search_cache_flushbuffer}
                 }
+                }
+                {if {== $i 19} {dx_generate_search_cache_iteration} } ;ensure that a frame is never updated when on a non-song node by adding an extra single cycle
             }
         }
     }
