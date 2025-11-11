@@ -64,6 +64,8 @@ match sys.platform:
         ninja.variable("arkhelper", "dependencies\\windows\\arkhelper.exe")
         ninja.variable("dtab", "dependencies\\windows\\dtab.exe")
         ninja.variable("dtacheck", "dependencies\\windows\\dtacheck.exe")
+        ninja.variable("prefabulous", "dependencies\\windows\\prefabulous.exe")
+        ninja.rule("prefab_import", 'cmd /c ""%prefabulous%" "%scene%" "%in%" && type nul > "%out%""', description="PREFAB %in% -> %scene%", pool="console",)
     case "darwin":
         ninja.variable("silence", "> /dev/null")
         ninja.rule("copy", "cp $in $out", description="COPY $in")
@@ -83,6 +85,8 @@ match sys.platform:
         ninja.variable("arkhelper", "dependencies/macos/arkhelper")
         ninja.variable("dtab", "dependencies/macos/dtab")
         ninja.variable("dtacheck", "dependencies/macos/dtacheck")
+        ninja.variable("prefabulous", "dependencies/macos/prefabulous")  # or linux path
+        ninja.rule("prefab_import", '"$prefabulous" "$scene" "$in" && touch "$out"', description="PREFAB $in -> $scene", pool="console",)
     case "linux":
         ninja.variable("silence", "> /dev/null")
         ninja.rule("copy", "cp --reflink=auto $in $out",description="COPY $in")
@@ -102,6 +106,8 @@ match sys.platform:
         ninja.variable("arkhelper", "dependencies/linux/arkhelper")
         ninja.variable("dtab", "dependencies/linux/dtab")
         ninja.variable("dtacheck", "dependencies/linux/dtacheck")
+        ninja.variable("prefabulous", "dependencies/linux/prefabulous")
+        ninja.rule("prefab_import", '"$prefabulous" "$scene" "$in" && touch "$out"', description="PREFAB $in -> $scene", pool="console",)
 
 match args.platform:
     case "ps3":
@@ -154,6 +160,8 @@ def ark_file_filter(file: Path):
         return False
     if file.is_dir():
         return False
+    if file.name.startswith("prefabs.milo_"):
+        return False
     if file.suffix.endswith("_ps3") and args.platform != "ps3":
         return False
     if file.suffix.endswith("_xbox") and args.platform != "xbox":
@@ -171,7 +179,127 @@ def ark_file_filter(file: Path):
 ark_files = []
 
 mip_entries = {
-    #Path("_ark", "dx", "custom_textures", "gems"): 4,
+    # outputted textures are DXT1, and they have very weird behavior with a 2-3 mipmap level
+    # just commenting them out for now
+    # Highway
+    Path("_ark", "dx", "custom_textures", "highways"): 6,
+
+    # Streak
+    Path("_ark", "dx", "custom_textures", "streaks"): 6,
+
+    # Overdrive
+    Path("_ark", "dx", "custom_textures", "overdrive"): 5,
+
+    # Keyboard
+    #Path("_ark", "dx", "custom_textures", "_additional_textures", "pk_song_key"): 2,
+    #Path("_ark", "dx", "custom_textures", "keyboard", "keyboard_lanes"): 2,
+    #Path("_ark", "dx", "custom_textures", "keyboard", "keyboard_press"): 3,
+
+    # Rails
+    #Path("_ark", "dx", "custom_textures", "rails", "rails_track"): 3,
+    #Path("_ark", "dx", "custom_textures", "rails", "rails_bracket"): 3,
+
+    # Multiplier ring
+    Path("_ark", "dx", "custom_textures", "multiplier_ring", "multiplier_ring_fx_stripes"): 4,
+    #Path("_ark", "dx", "custom_textures", "multiplier_ring", "multiplier_ring_glow"): 3,
+    #Path("_ark", "dx", "custom_textures", "multiplier_ring", "multiplier_ring_bg"): 3,
+    #Path("_ark", "dx", "custom_textures", "multiplier_ring", "multiplier_ring_lens"): 3,
+    #Path("_ark", "dx", "custom_textures", "multiplier_ring", "multiplier_ring_lens_vox"): 3,
+    #Path("_ark", "dx", "custom_textures", "multiplier_ring", "multiplier_ring_plate"): 3,
+    #Path("_ark", "dx", "custom_textures", "multiplier_ring", "multiplier_ring_plate_fc"): 3,
+
+    # Gems
+    Path("_ark", "dx", "custom_textures", "gems", "gems_default"): 5,
+    Path("_ark", "dx", "custom_textures", "gems", "gems_emissive"): 5,
+    Path("_ark", "dx", "custom_textures", "gems", "gems_hopo"): 5,
+    Path("_ark", "dx", "custom_textures", "gems", "gems_emissive_hopo"): 5,
+    #Path("_ark", "dx", "custom_textures", "gems", "gems_emissive_dynamic"): 2,
+    Path("_ark", "dx", "custom_textures", "gems", "gems_keys"): 4,
+    Path("_ark", "dx", "custom_textures", "gems", "gems_cymbals"): 5,
+    Path("_ark", "dx", "custom_textures", "gems", "gems_cymbals_emissive"): 5,
+    Path("_ark", "dx", "custom_textures", "gems", "gems_gliss"): 4,
+
+    # Strikeline
+    #Path("_ark", "dx", "custom_textures", "strikeline", "strikeline_green"): 2,
+    #Path("_ark", "dx", "custom_textures", "strikeline", "strikeline_red"): 2,
+    #Path("_ark", "dx", "custom_textures", "strikeline", "strikeline_yellow"): 2,
+    #Path("_ark", "dx", "custom_textures", "strikeline", "strikeline_blue"): 2,
+    #Path("_ark", "dx", "custom_textures", "strikeline", "strikeline_orange"): 2,
+
+    # Flares
+    #Path("_ark", "dx", "custom_textures", "flares", "flares_guitar_inner"): 3,
+    #Path("_ark", "dx", "custom_textures", "flares", "flares_guitar_outer"): 2,
+    #Path("_ark", "dx", "custom_textures", "flares", "flares_guitar_style"): 2,
+    #Path("_ark", "dx", "custom_textures", "flares", "flares_inner"): 3,
+    Path("_ark", "dx", "custom_textures", "flares", "flares_outer"): 4,
+    #Path("_ark", "dx", "custom_textures", "flares", "flares_style"): 3,
+
+    # Particles
+    #Path("_ark", "dx", "custom_textures", "particles", "particles_gem_cap"): 3,
+    Path("_ark", "dx", "custom_textures", "particles", "particles_glass1"): 4,
+    #Path("_ark", "dx", "custom_textures", "particles", "particles_glass1_neg"): 3,
+    #Path("_ark", "dx", "custom_textures", "particles", "particles_glass2"): 3,
+    Path("_ark", "dx", "custom_textures", "particles", "particles_shockwave"): 5,
+    #Path("_ark", "dx", "custom_textures", "particles", "particles_smoke"): 3,
+    #Path("_ark", "dx", "custom_textures", "particles", "particles_spark"): 3,
+    Path("_ark", "dx", "custom_textures", "particles", "particles_sparks_radial"): 4,
+    Path("_ark", "dx", "custom_textures", "particles", "particles_sparks_vertical"): 4,
+
+    # Score box
+    #Path("_ark", "dx", "custom_textures", "score", "scoreboard_frame"): 3,
+    #Path("_ark", "dx", "custom_textures", "score", "scoreboard_lens"): 3,
+    Path("_ark", "dx", "custom_textures", "score", "star_multiplier_meter_frame"): 4,
+    Path("_ark", "dx", "custom_textures", "score", "star_multiplier_meter_lens"): 4,
+
+    # Font
+    Path("_ark", "dx", "custom_textures", "font"): 6,
+
+    # Solo box
+    Path("_ark", "dx", "custom_textures", "solo_box"): 4,
+
+    # Big rock ending
+    Path("_ark", "dx", "custom_textures", "bre", "bre_shield"): 5,
+    Path("_ark", "dx", "custom_textures", "bre", "bre_black_wing"): 5,
+    #Path("_ark", "dx", "custom_textures", "bre", "bre_blossom"): 3,
+
+    # Crowd meter
+    #Path("_ark", "dx", "custom_textures", "crowd_meter", "crowd_meter_frame"): 3,
+    #Path("_ark", "dx", "custom_textures", "crowd_meter", "crowd_meter_lens"): 3,
+
+    # Stars
+    #Path("_ark", "dx", "custom_textures", "stars", "score_star_frame"): 3,
+    #Path("_ark", "dx", "custom_textures", "stars", "score_star_gold"): 3,
+    #Path("_ark", "dx", "custom_textures", "stars", "score_star_gold_flash"): 3,
+    #Path("_ark", "dx", "custom_textures", "stars", "score_star_crimson"): 3,
+    Path("_ark", "dx", "custom_textures", "stars", "score_tour_icon"): 4,
+
+    # Beat lines
+    #Path("_ark", "dx", "custom_textures", "rails", "beat_lines"): 2,
+
+    # Overdrive bar
+    #Path("_ark", "dx", "custom_textures", "overdrive_bar", "od_bar_sun_fx"): 3,
+    Path("_ark", "dx", "custom_textures", "overdrive_bar", "od_bar_background"): 4,
+    #Path("_ark", "dx", "custom_textures", "overdrive_bar", "od_bar_lens"): 2,
+    #Path("_ark", "dx", "custom_textures", "overdrive_bar", "od_bar_long"): 2,
+
+    # Vocal highway
+    Path("_ark", "dx", "custom_textures", "vocal_highway", "vocal_highway_bg"): 4,
+    Path("_ark", "dx", "custom_textures", "vocal_highway", "vocal_highway_no_tonic"): 4,
+    #Path("_ark", "dx", "custom_textures", "vocal_highway", "vocal_highway_bg_blue"): 2,
+    #Path("_ark", "dx", "custom_textures", "vocal_highway", "vocal_highway_bg_brown"): 2,
+
+    # Vocal arrows
+    Path("_ark", "dx", "custom_textures", "vocal_arrows", "vocal_arrow"): 4,
+    Path("_ark", "dx", "custom_textures", "vocal_arrows", "vocal_arrow_outline"): 4,
+
+    # Vocal notes
+    Path("_ark", "dx", "custom_textures", "vocal_note", "vocal_note_tube"): 5,
+    Path("_ark", "dx", "custom_textures", "vocal_note", "vocal_note_talkie"): 4,
+    Path("_ark", "dx", "custom_textures", "vocal_note", "vocal_note_tamb_gem"): 4,
+    Path("_ark", "dx", "custom_textures", "vocal_note", "vocal_note_off"): 4,
+    Path("_ark", "dx", "custom_textures", "vocal_note", "vocal_note_on"): 4,
+
+    # Additional textures
     Path("_ark", "dx", "custom_textures", "_additional_textures", "countdown_circle.png"): 4,
     Path("_ark", "dx", "custom_textures", "_additional_textures", "countdown_circle_meter_wipe.png"): 4,
 }
@@ -258,6 +386,50 @@ for f in filter(ark_file_filter, Path("_ark").rglob("*")):
             if not out_path.name.endswith("_update.txt"):
                 ninja.build(str(out_path), "copy", str(f))
                 ark_files.append(str(out_path))
+
+if args.platform in ("ps3", "xbox"):
+    milo_name = f"prefabs.milo_{'ps3' if args.platform == 'ps3' else 'xbox'}"
+
+    # Prefer main/shared, fallback to shared
+    src_candidates = [
+        Path("_ark", "char", "main", "shared", "gen", milo_name),
+        Path("_ark", "char", "shared", "gen", milo_name),
+    ]
+    src_scene = next((p for p in src_candidates if p.exists()), None)
+
+    staged_scene = Path("obj", args.platform, "ark", "char", "main", "shared", "gen", milo_name)
+
+    if src_scene is not None:
+        # Always stage the base scene (this ensures it lands in obj/... even if no prefabs to add)
+        ninja.build(str(staged_scene), "copy", str(src_scene))
+        ark_files.append(str(staged_scene))
+
+        custom_dir = Path("_ark", "char", "custom_prefabs")
+        if custom_dir.exists() and src_scene is not None:
+            stamps_dir = Path("obj", args.platform, "stamps")
+            stamps_dir.mkdir(parents=True, exist_ok=True)
+
+            last_stamp = None
+            for pf in sorted(custom_dir.iterdir()):
+                if not (pf.is_file() and pf.suffix == "" and pf.name != ".gitkeep"):
+                    continue
+
+                stamp = stamps_dir / f"prefab_{pf.name}.stamp"
+
+                implicit_inputs = [str(staged_scene)]
+                if last_stamp is not None:
+                    implicit_inputs.append(str(last_stamp))
+
+                # NOTE: pf is the *explicit input*, so rule can use $in
+                ninja.build(
+                    str(stamp),
+                    "prefab_import",
+                    str(pf),
+                    implicit=implicit_inputs,
+                    variables={"scene": str(staged_scene)},
+                )
+                ark_files.append(str(stamp))
+                last_stamp = stamp
 
 # write version info
 dta = Path("obj", args.platform, "raw", "dx", "locale", "dx_version.dta")
